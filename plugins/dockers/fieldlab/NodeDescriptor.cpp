@@ -21,6 +21,30 @@ QVector<NodeDescriptor> NodeDescriptor::builtInScalarNodes()
     });
     descriptors.append(constant);
 
+    NodeDescriptor positionX;
+    positionX.typeId = QStringLiteral("fieldlab.position_x");
+    positionX.displayName = QStringLiteral("Position X");
+    positionX.category = QStringLiteral("Input");
+    positionX.outputs.append({
+        QStringLiteral("value"),
+        QStringLiteral("Value"),
+        FieldValueType::Scalar,
+        FieldPortDirection::Output
+    });
+    descriptors.append(positionX);
+
+    NodeDescriptor positionY;
+    positionY.typeId = QStringLiteral("fieldlab.position_y");
+    positionY.displayName = QStringLiteral("Position Y");
+    positionY.category = QStringLiteral("Input");
+    positionY.outputs.append({
+        QStringLiteral("value"),
+        QStringLiteral("Value"),
+        FieldValueType::Scalar,
+        FieldPortDirection::Output
+    });
+    descriptors.append(positionY);
+
     NodeDescriptor add;
     add.typeId = QStringLiteral("fieldlab.add");
     add.displayName = QStringLiteral("Add");

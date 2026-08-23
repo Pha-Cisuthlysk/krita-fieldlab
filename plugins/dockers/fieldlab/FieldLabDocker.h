@@ -10,7 +10,9 @@
 
 class QComboBox;
 class QDoubleSpinBox;
+class QImage;
 class QLabel;
+class FieldGraph;
 
 class FieldLabDocker : public QDockWidget
 {
@@ -21,11 +23,17 @@ public:
     ~FieldLabDocker() override;
 
 private:
-    void evaluateGraphTest();
+    void refreshGraphPreview();
+    int buildPreviewGraph(FieldGraph &graph) const;
+    QImage renderPreview(
+        const FieldGraph &graph,
+        int outputNodeId,
+        QString *error = nullptr) const;
 
     QDoubleSpinBox *m_inputA {nullptr};
     QDoubleSpinBox *m_inputB {nullptr};
     QComboBox *m_operation {nullptr};
+    QLabel *m_preview {nullptr};
     QLabel *m_result {nullptr};
 };
 

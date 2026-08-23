@@ -7,17 +7,23 @@
 
 FieldEvaluationResult FieldGraphEvaluator::evaluateScalar(
     const FieldGraph &graph,
-    int nodeId) const
+    int nodeId,
+    const FieldEvaluationContext &context) const
 {
     QSet<int> visiting;
 
-    return evaluateScalarInternal(graph, nodeId, visiting);
+    return evaluateScalarInternal(
+        graph,
+        nodeId,
+        context,
+        visiting);
 }
 
 FieldEvaluationResult FieldGraphEvaluator::evaluateInput(
     const FieldGraph &graph,
     const FieldNode &node,
     const QString &port,
+    const FieldEvaluationContext &context,
     QSet<int> &visiting) const
 {
     const FieldConnection *connection =
@@ -35,12 +41,14 @@ FieldEvaluationResult FieldGraphEvaluator::evaluateInput(
     return evaluateScalarInternal(
         graph,
         connection->fromNode,
+        context,
         visiting);
 }
 
 FieldEvaluationResult FieldGraphEvaluator::evaluateScalarInternal(
     const FieldGraph &graph,
     int nodeId,
+    const FieldEvaluationContext &context,
     QSet<int> &visiting) const
 {
     const FieldNode *node = graph.node(nodeId);
@@ -79,6 +87,22 @@ FieldEvaluationResult FieldGraphEvaluator::evaluateScalarInternal(
         });
     }
 
+    if (node->typeId == QStringLiteral("fieldlab.position_x")) {
+        return finish({
+            true,
+            context.x,
+            QString()
+        });
+    }
+
+    if (node->typeId == QStringLiteral("fieldlab.position_y")) {
+        return finish({
+            true,
+            context.y,
+            QString()
+        });
+    }
+
     if (node->typeId == QStringLiteral("fieldlab.add") ||
         node->typeId == QStringLiteral("fieldlab.multiply")) {
 
@@ -87,6 +111,7 @@ FieldEvaluationResult FieldGraphEvaluator::evaluateScalarInternal(
                 graph,
                 *node,
                 QStringLiteral("a"),
+                context,
                 visiting);
 
         if (!a.ok) {
@@ -98,6 +123,7 @@ FieldEvaluationResult FieldGraphEvaluator::evaluateScalarInternal(
                 graph,
                 *node,
                 QStringLiteral("b"),
+                context,
                 visiting);
 
         if (!b.ok) {

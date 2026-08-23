@@ -11,6 +11,12 @@
 
 #include "FieldGraph.h"
 
+struct FieldEvaluationContext
+{
+    double x {0.0};
+    double y {0.0};
+};
+
 struct FieldEvaluationResult
 {
     bool ok {false};
@@ -23,18 +29,21 @@ class FieldGraphEvaluator
 public:
     FieldEvaluationResult evaluateScalar(
         const FieldGraph &graph,
-        int nodeId) const;
+        int nodeId,
+        const FieldEvaluationContext &context = {}) const;
 
 private:
     FieldEvaluationResult evaluateScalarInternal(
         const FieldGraph &graph,
         int nodeId,
+        const FieldEvaluationContext &context,
         QSet<int> &visiting) const;
 
     FieldEvaluationResult evaluateInput(
         const FieldGraph &graph,
         const FieldNode &node,
         const QString &port,
+        const FieldEvaluationContext &context,
         QSet<int> &visiting) const;
 };
 
