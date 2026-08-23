@@ -7,6 +7,7 @@
 
 #include "FieldGraph.h"
 #include "FieldGraphEvaluator.h"
+#include "FieldGraphSampler.h"
 #include "FieldGraphValidator.h"
 #include "NodeDescriptor.h"
 
@@ -21,7 +22,6 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include <algorithm>
 #include <cmath>
 
 #include <klocalizedstring.h>
@@ -220,66 +220,36 @@ QImage FieldLabDocker::renderPreview(
 {
     constexpr int previewSize = 128;
 
-    FieldGraphEvaluator evaluator;
-    QVector<double> samples;
+    const FieldGraphSamplingResult sampling =
+        FieldGraphSampler().sampleScalar(
+            graph,
+            outputNodeId,
+            previewSize,
+            previewSize);
 
-    samples.reserve(previewSize * previewSize);
-
-    double minValue = 0.0;
-    double maxValue = 0.0;
-    bool hasSample = false;
-
-    for (int y = 0; y < previewSize; ++y) {
-        for (int x = 0; x < previewSize; ++x) {
-            const FieldEvaluationContext context {
-                previewSize > 1
-                    ? double(x) / double(previewSize - 1)
-                    : 0.0,
-                previewSize > 1
-                    ? double(y) / double(previewSize - 1)
-                    : 0.0
-            };
-
-            const FieldEvaluationResult result =
-                evaluator.evaluateScalar(
-                    graph,
-                    outputNodeId,
-                    context);
-
-            if (!result.ok) {
-                if (error) {
-                    *error = result.error;
-                }
-
-                return QImage();
-            }
-
-            samples.append(result.value);
-
-            if (!hasSample) {
-                minValue = result.value;
-                maxValue = result.value;
-                hasSample = true;
-            } else {
-                minValue = std::min(minValue, result.value);
-                maxValue = std::max(maxValue, result.value);
-            }
+    if (!sampling.ok) {
+        if (error) {
+            *error = sampling.error;
         }
+
+        return QImage();
     }
 
     QImage preview(
-        previewSize,
-        previewSize,
+        sampling.grid.width,
+        sampling.grid.height,
         QImage::Format_Grayscale8);
 
-    const double range = maxValue - minValue;
+    const double range =
+        sampling.grid.maximum - sampling.grid.minimum;
     int sampleIndex = 0;
 
-    for (int y = 0; y < previewSize; ++y) {
+    for (int y = 0; y < sampling.grid.height; ++y) {
         uchar *scanLine = preview.scanLine(y);
 
-        for (int x = 0; x < previewSize; ++x) {
-            const double value = samples.at(sampleIndex++);
+        for (int x = 0; x < sampling.grid.width; ++x) {
+            const double value =
+                sampling.grid.values.at(sampleIndex++);
 
             const int gray =
                 std::abs(range) < 1e-9
@@ -287,7 +257,8 @@ QImage FieldLabDocker::renderPreview(
                     : qBound(
                         0,
                         int(std::lround(
-                            ((value - minValue) / range) * 255.0)),
+                            ((value - sampling.grid.minimum) / range) *
+                                255.0)),
                         255);
 
             scanLine[x] = uchar(gray);

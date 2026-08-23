@@ -21,6 +21,8 @@ private Q_SLOTS:
     void testBuiltInDescriptors();
     void testGraphValidation();
     void testGraphValidationErrors();
+    void testGridSampling();
+    void testGridSamplingErrors();
 };
 
 #endif

@@ -8,8 +8,11 @@
 #include <QSet>
 #include <QTest>
 
+#include <limits>
+
 #include "FieldGraph.h"
 #include "FieldGraphEvaluator.h"
+#include "FieldGraphSampler.h"
 #include "FieldGraphValidator.h"
 #include "NodeDescriptor.h"
 
@@ -398,6 +401,101 @@ void FieldGraphTest::testGraphValidationErrors()
         QVERIFY(result.errors.contains(
             QStringLiteral("Graph contains a cycle.")));
     }
+}
+
+void FieldGraphTest::testGridSampling()
+{
+    FieldGraph graph;
+
+    const int x = graph.addNode(QStringLiteral("fieldlab.position_x"));
+    const int y = graph.addNode(QStringLiteral("fieldlab.position_y"));
+    const int add = graph.addNode(QStringLiteral("fieldlab.add"));
+
+    QVERIFY(graph.connectNodes(
+        x,
+        QStringLiteral("value"),
+        add,
+        QStringLiteral("a")));
+    QVERIFY(graph.connectNodes(
+        y,
+        QStringLiteral("value"),
+        add,
+        QStringLiteral("b")));
+
+    const FieldGraphSamplingResult result =
+        FieldGraphSampler().sampleScalar(graph, add, 3, 2);
+
+    QVERIFY2(result.ok, qPrintable(result.error));
+    QCOMPARE(result.grid.width, 3);
+    QCOMPARE(result.grid.height, 2);
+    QCOMPARE(result.grid.values.size(), 6);
+    QCOMPARE(result.grid.minimum, 0.0);
+    QCOMPARE(result.grid.maximum, 2.0);
+    QCOMPARE(result.grid.valueAt(0, 0), 0.0);
+    QCOMPARE(result.grid.valueAt(1, 0), 0.5);
+    QCOMPARE(result.grid.valueAt(2, 0), 1.0);
+    QCOMPARE(result.grid.valueAt(0, 1), 1.0);
+    QCOMPARE(result.grid.valueAt(1, 1), 1.5);
+    QCOMPARE(result.grid.valueAt(2, 1), 2.0);
+
+    FieldGraph constantGraph;
+    const int constant = constantGraph.addNode(
+        QStringLiteral("fieldlab.constant"),
+        {{QStringLiteral("value"), 7.0}});
+
+    const FieldGraphSamplingResult singleSample =
+        FieldGraphSampler().sampleScalar(
+            constantGraph,
+            constant,
+            1,
+            1);
+
+    QVERIFY2(singleSample.ok, qPrintable(singleSample.error));
+    QCOMPARE(singleSample.grid.minimum, 7.0);
+    QCOMPARE(singleSample.grid.maximum, 7.0);
+    QCOMPARE(singleSample.grid.valueAt(0, 0), 7.0);
+}
+
+void FieldGraphTest::testGridSamplingErrors()
+{
+    FieldGraph graph;
+    const int add = graph.addNode(QStringLiteral("fieldlab.add"));
+
+    const FieldGraphSamplingResult invalidDimensions =
+        FieldGraphSampler().sampleScalar(graph, add, 0, 16);
+    QVERIFY(!invalidDimensions.ok);
+    QCOMPARE(
+        invalidDimensions.error,
+        QStringLiteral("Sample dimensions must be positive."));
+
+    const FieldGraphSamplingResult evaluationError =
+        FieldGraphSampler().sampleScalar(graph, add, 2, 2);
+    QVERIFY(!evaluationError.ok);
+    QCOMPARE(
+        evaluationError.error,
+        QStringLiteral("Input 'a' is not connected."));
+
+    FieldGraph nonFiniteGraph;
+    const int infinity = nonFiniteGraph.addNode(
+        QStringLiteral("fieldlab.constant"),
+        {
+            {
+                QStringLiteral("value"),
+                std::numeric_limits<double>::infinity()
+            }
+        });
+
+    const FieldGraphSamplingResult nonFinite =
+        FieldGraphSampler().sampleScalar(
+            nonFiniteGraph,
+            infinity,
+            1,
+            1);
+    QVERIFY(!nonFinite.ok);
+    QCOMPARE(
+        nonFinite.error,
+        QStringLiteral(
+            "Node evaluated to a non-finite value at sample (0, 0)."));
 }
 
 QTEST_GUILESS_MAIN(FieldGraphTest)

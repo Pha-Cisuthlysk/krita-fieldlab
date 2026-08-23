@@ -4,6 +4,7 @@ set(kritafieldlab_SOURCES
     NodeDescriptor.cpp
     FieldGraph.cpp
     FieldGraphEvaluator.cpp
+    FieldGraphSampler.cpp
     FieldGraphValidator.cpp
 )
 
