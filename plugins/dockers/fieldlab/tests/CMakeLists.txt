@@ -1,12 +1,5 @@
 kis_add_test(
     FieldGraphTest.cpp
-    ../FieldGraph.cpp
-    ../FieldGraphEvaluator.cpp
-    ../FieldGraphSampler.cpp
-    ../FieldGraphValidator.cpp
-    ../NodeDescriptor.cpp
     TEST_NAME FieldGraphTest
-    LINK_LIBRARIES Qt::Core Qt::Test
+    LINK_LIBRARIES Qt::Test kritafieldlabcore
 )
-
-target_include_directories(FieldGraphTest PRIVATE ..)
