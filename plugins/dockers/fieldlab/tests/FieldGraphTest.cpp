@@ -10,6 +10,7 @@
 
 #include "FieldGraph.h"
 #include "FieldGraphEvaluator.h"
+#include "FieldGraphValidator.h"
 #include "NodeDescriptor.h"
 
 void FieldGraphTest::testGraphConnections()
@@ -224,6 +225,179 @@ void FieldGraphTest::testBuiltInDescriptors()
     QVERIFY(typeIds.contains(QStringLiteral("fieldlab.position_y")));
     QVERIFY(typeIds.contains(QStringLiteral("fieldlab.add")));
     QVERIFY(typeIds.contains(QStringLiteral("fieldlab.multiply")));
+}
+
+void FieldGraphTest::testGraphValidation()
+{
+    FieldGraph graph;
+
+    const int constant = graph.addNode(
+        QStringLiteral("fieldlab.constant"),
+        {{QStringLiteral("value"), 2.0}});
+    const int x = graph.addNode(QStringLiteral("fieldlab.position_x"));
+    const int multiply = graph.addNode(QStringLiteral("fieldlab.multiply"));
+
+    QVERIFY(graph.connectNodes(
+        constant,
+        QStringLiteral("value"),
+        multiply,
+        QStringLiteral("a")));
+    QVERIFY(graph.connectNodes(
+        x,
+        QStringLiteral("value"),
+        multiply,
+        QStringLiteral("b")));
+
+    const FieldGraphValidationResult result =
+        FieldGraphValidator().validate(graph);
+
+    QVERIFY(result.isValid());
+    QVERIFY(result.errors.isEmpty());
+
+    NodeDescriptor optionalInput;
+    optionalInput.typeId = QStringLiteral("test.optional_input");
+    optionalInput.inputs.append({
+        QStringLiteral("value"),
+        QStringLiteral("Value"),
+        FieldValueType::Scalar,
+        FieldPortDirection::Input,
+        false
+    });
+
+    FieldGraph optionalGraph;
+    optionalGraph.addNode(optionalInput.typeId);
+
+    const FieldGraphValidationResult optionalResult =
+        FieldGraphValidator({optionalInput}).validate(optionalGraph);
+
+    QVERIFY(optionalResult.isValid());
+}
+
+void FieldGraphTest::testGraphValidationErrors()
+{
+    {
+        FieldGraph graph;
+        const int unknown =
+            graph.addNode(QStringLiteral("fieldlab.unknown"));
+
+        const FieldGraphValidationResult result =
+            FieldGraphValidator().validate(graph);
+
+        QVERIFY(!result.isValid());
+        QVERIFY(result.errors.contains(
+            QStringLiteral("Node %1 uses unknown type 'fieldlab.unknown'.")
+                .arg(unknown)));
+    }
+
+    {
+        FieldGraph graph;
+        const int constant =
+            graph.addNode(QStringLiteral("fieldlab.constant"));
+        const int add = graph.addNode(QStringLiteral("fieldlab.add"));
+
+        QVERIFY(graph.connectNodes(
+            constant,
+            QStringLiteral("missing"),
+            add,
+            QStringLiteral("a")));
+        QVERIFY(graph.connectNodes(
+            constant,
+            QStringLiteral("value"),
+            add,
+            QStringLiteral("missing")));
+
+        const FieldGraphValidationResult result =
+            FieldGraphValidator().validate(graph);
+
+        QVERIFY(!result.isValid());
+        QVERIFY(result.errors.contains(
+            QStringLiteral("Node %1 type 'fieldlab.constant' has no output 'missing'.")
+                .arg(constant)));
+        QVERIFY(result.errors.contains(
+            QStringLiteral("Node %1 type 'fieldlab.add' has no input 'missing'.")
+                .arg(add)));
+        QVERIFY(result.errors.contains(
+            QStringLiteral("Node %1 input 'b' is not connected.")
+                .arg(add)));
+    }
+
+    {
+        NodeDescriptor vectorSource;
+        vectorSource.typeId = QStringLiteral("test.vector_source");
+        vectorSource.outputs.append({
+            QStringLiteral("value"),
+            QStringLiteral("Value"),
+            FieldValueType::Vector2,
+            FieldPortDirection::Output
+        });
+
+        NodeDescriptor scalarDestination;
+        scalarDestination.typeId = QStringLiteral("test.scalar_destination");
+        scalarDestination.inputs.append({
+            QStringLiteral("value"),
+            QStringLiteral("Value"),
+            FieldValueType::Scalar,
+            FieldPortDirection::Input
+        });
+
+        FieldGraph graph;
+        const int source = graph.addNode(vectorSource.typeId);
+        const int destination = graph.addNode(scalarDestination.typeId);
+
+        QVERIFY(graph.connectNodes(
+            source,
+            QStringLiteral("value"),
+            destination,
+            QStringLiteral("value")));
+
+        const FieldGraphValidationResult result =
+            FieldGraphValidator({vectorSource, scalarDestination})
+                .validate(graph);
+
+        QVERIFY(!result.isValid());
+        QVERIFY(result.errors.contains(
+            QStringLiteral(
+                "Cannot connect %1.value to %2.value: port types differ.")
+                .arg(source)
+                .arg(destination)));
+    }
+
+    {
+        FieldGraph graph;
+        const int constant =
+            graph.addNode(QStringLiteral("fieldlab.constant"));
+        const int add = graph.addNode(QStringLiteral("fieldlab.add"));
+        const int multiply =
+            graph.addNode(QStringLiteral("fieldlab.multiply"));
+
+        QVERIFY(graph.connectNodes(
+            multiply,
+            QStringLiteral("value"),
+            add,
+            QStringLiteral("a")));
+        QVERIFY(graph.connectNodes(
+            constant,
+            QStringLiteral("value"),
+            add,
+            QStringLiteral("b")));
+        QVERIFY(graph.connectNodes(
+            add,
+            QStringLiteral("value"),
+            multiply,
+            QStringLiteral("a")));
+        QVERIFY(graph.connectNodes(
+            constant,
+            QStringLiteral("value"),
+            multiply,
+            QStringLiteral("b")));
+
+        const FieldGraphValidationResult result =
+            FieldGraphValidator().validate(graph);
+
+        QVERIFY(!result.isValid());
+        QVERIFY(result.errors.contains(
+            QStringLiteral("Graph contains a cycle.")));
+    }
 }
 
 QTEST_GUILESS_MAIN(FieldGraphTest)

@@ -30,6 +30,7 @@ struct NodePortDescriptor
     QString displayName;
     FieldValueType valueType {FieldValueType::Scalar};
     FieldPortDirection direction {FieldPortDirection::Input};
+    bool required {true};
 };
 
 struct NodeDescriptor

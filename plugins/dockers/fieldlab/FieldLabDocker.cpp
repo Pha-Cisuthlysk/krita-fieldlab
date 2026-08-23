@@ -7,6 +7,7 @@
 
 #include "FieldGraph.h"
 #include "FieldGraphEvaluator.h"
+#include "FieldGraphValidator.h"
 #include "NodeDescriptor.h"
 
 #include <QComboBox>
@@ -301,6 +302,19 @@ void FieldLabDocker::refreshGraphPreview()
     FieldGraph graph;
     const int outputNodeId =
         buildPreviewGraph(graph);
+
+    const FieldGraphValidationResult validation =
+        FieldGraphValidator().validate(graph);
+
+    if (!validation.isValid()) {
+        m_preview->clear();
+        m_preview->setText(i18n("Preview unavailable."));
+
+        m_result->setText(
+            i18n("Graph error: %1", validation.errors.first()));
+
+        return;
+    }
 
     FieldGraphEvaluator evaluator;
 

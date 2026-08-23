@@ -19,6 +19,8 @@ private Q_SLOTS:
     void testEvaluationErrors();
     void testCycleDetection();
     void testBuiltInDescriptors();
+    void testGraphValidation();
+    void testGraphValidationErrors();
 };
 
 #endif

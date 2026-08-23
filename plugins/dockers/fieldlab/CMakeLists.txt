@@ -4,6 +4,7 @@ set(kritafieldlab_SOURCES
     NodeDescriptor.cpp
     FieldGraph.cpp
     FieldGraphEvaluator.cpp
+    FieldGraphValidator.cpp
 )
 
 kis_add_library(kritafieldlab MODULE ${kritafieldlab_SOURCES})
