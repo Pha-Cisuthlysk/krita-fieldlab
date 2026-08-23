@@ -14,6 +14,7 @@ class FieldGraphTest : public QObject
 
 private Q_SLOTS:
     void testGraphConnections();
+    void testGraphMutation();
     void testArithmeticEvaluation();
     void testCoordinateEvaluation();
     void testEvaluationErrors();

@@ -20,6 +20,49 @@ int FieldGraph::addNode(
     return node.id;
 }
 
+bool FieldGraph::removeNode(int nodeId)
+{
+    int nodeIndex = -1;
+
+    for (int i = 0; i < m_nodes.size(); ++i) {
+        if (m_nodes.at(i).id == nodeId) {
+            nodeIndex = i;
+            break;
+        }
+    }
+
+    if (nodeIndex < 0) {
+        return false;
+    }
+
+    for (int i = m_connections.size() - 1; i >= 0; --i) {
+        const FieldConnection &connection = m_connections.at(i);
+
+        if (connection.fromNode == nodeId ||
+            connection.toNode == nodeId) {
+            m_connections.removeAt(i);
+        }
+    }
+
+    m_nodes.removeAt(nodeIndex);
+    return true;
+}
+
+bool FieldGraph::setNodeParameter(
+    int nodeId,
+    const QString &name,
+    const QVariant &value)
+{
+    for (FieldNode &node : m_nodes) {
+        if (node.id == nodeId) {
+            node.parameters.insert(name, value);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool FieldGraph::connectNodes(
     int fromNode,
     const QString &fromPort,
@@ -54,6 +97,25 @@ bool FieldGraph::connectNodes(
     m_connections.append(connection);
 
     return true;
+}
+
+bool FieldGraph::disconnectInput(
+    int nodeId,
+    const QString &inputPort)
+{
+    bool disconnected = false;
+
+    for (int i = m_connections.size() - 1; i >= 0; --i) {
+        const FieldConnection &connection = m_connections.at(i);
+
+        if (connection.toNode == nodeId &&
+            connection.toPort == inputPort) {
+            m_connections.removeAt(i);
+            disconnected = true;
+        }
+    }
+
+    return disconnected;
 }
 
 const FieldNode *FieldGraph::node(int nodeId) const

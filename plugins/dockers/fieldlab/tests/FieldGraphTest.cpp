@@ -63,6 +63,71 @@ void FieldGraphTest::testGraphConnections()
         QStringLiteral("a")));
 }
 
+void FieldGraphTest::testGraphMutation()
+{
+    FieldGraph graph;
+
+    const int first = graph.addNode(
+        QStringLiteral("fieldlab.constant"),
+        {{QStringLiteral("value"), 2.0}});
+    const int second = graph.addNode(
+        QStringLiteral("fieldlab.constant"),
+        {{QStringLiteral("value"), 3.0}});
+    const int add = graph.addNode(QStringLiteral("fieldlab.add"));
+
+    QVERIFY(graph.connectNodes(
+        first,
+        QStringLiteral("value"),
+        add,
+        QStringLiteral("a")));
+    QVERIFY(graph.connectNodes(
+        second,
+        QStringLiteral("value"),
+        add,
+        QStringLiteral("b")));
+
+    QVERIFY(graph.setNodeParameter(
+        first,
+        QStringLiteral("value"),
+        4.0));
+    QVERIFY(!graph.setNodeParameter(
+        99,
+        QStringLiteral("value"),
+        1.0));
+
+    const FieldEvaluationResult updated =
+        FieldGraphEvaluator().evaluateScalar(graph, add);
+    QVERIFY2(updated.ok, qPrintable(updated.error));
+    QCOMPARE(updated.value, 7.0);
+
+    QVERIFY(graph.disconnectInput(add, QStringLiteral("a")));
+    QVERIFY(!graph.disconnectInput(add, QStringLiteral("a")));
+    QCOMPARE(graph.connections().size(), 1);
+
+    const FieldEvaluationResult disconnected =
+        FieldGraphEvaluator().evaluateScalar(graph, add);
+    QVERIFY(!disconnected.ok);
+    QCOMPARE(
+        disconnected.error,
+        QStringLiteral("Input 'a' is not connected."));
+
+    QVERIFY(graph.connectNodes(
+        first,
+        QStringLiteral("value"),
+        add,
+        QStringLiteral("a")));
+    QVERIFY(graph.removeNode(first));
+    QVERIFY(!graph.removeNode(first));
+    QVERIFY(!graph.node(first));
+    QCOMPARE(graph.connections().size(), 1);
+    QCOMPARE(
+        graph.connectionTo(add, QStringLiteral("b"))->fromNode,
+        second);
+
+    const int next = graph.addNode(QStringLiteral("fieldlab.constant"));
+    QCOMPARE(next, 4);
+}
+
 void FieldGraphTest::testArithmeticEvaluation()
 {
     FieldGraph graph;

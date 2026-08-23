@@ -34,11 +34,22 @@ public:
         const QString &typeId,
         const QHash<QString, QVariant> &parameters = {});
 
+    bool removeNode(int nodeId);
+
+    bool setNodeParameter(
+        int nodeId,
+        const QString &name,
+        const QVariant &value);
+
     bool connectNodes(
         int fromNode,
         const QString &fromPort,
         int toNode,
         const QString &toPort);
+
+    bool disconnectInput(
+        int nodeId,
+        const QString &inputPort);
 
     const FieldNode *node(int nodeId) const;
 
