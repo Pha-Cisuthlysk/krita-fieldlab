@@ -1,6 +1,9 @@
-﻿set(kritafieldlab_SOURCES
+set(kritafieldlab_SOURCES
     FieldLabPlugin.cpp
     FieldLabDocker.cpp
+    NodeDescriptor.cpp
+    FieldGraph.cpp
+    FieldGraphEvaluator.cpp
 )
 
 kis_add_library(kritafieldlab MODULE ${kritafieldlab_SOURCES})
