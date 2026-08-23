@@ -32,3 +32,6 @@ add_subdirectory(storyboarddocker)
 add_subdirectory(widegamutcolorselector)
 add_subdirectory(brushhud)
 add_subdirectory(textproperties)
+
+add_subdirectory(fieldlab)
+
