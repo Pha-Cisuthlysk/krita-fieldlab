@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "canonical_tablet": "Samsung Galaxy Tab S9 FE+",
+  "platforms": [
+    "Windows desktop",
+    "Android ARM64"
+  ],
+  "protected_near_term": [
+    "Passing-point curve tool",
+    "Smart Fill UI/presets",
+    "Color Harmony controls",
+    "Procedural Lab / Field Lab v0",
+    "Tablet-oriented workspace"
+  ],
+  "fieldlab_active": [
+    "fractals",
+    "procedural baking",
+    "scalar fields",
+    "vector fields",
+    "distance fields",
+    "distance from line art",
+    "SDF",
+    "domain warping",
+    "contours",
+    "streamlines",
+    "procedural hatching",
+    "field flow",
+    "procedural operators",
+    "intelligent coloring",
+    "pressure/input modulation"
+  ],
+  "architecture": {
+    "semantic_graph_authoritative": true,
+    "fastnoise_primary_scalar_backend": true,
+    "kseexpr_retained_optional_backend": true,
+    "batch_evaluation_required": true,
+    "visual_node_editor_is_view_only": true,
+    "architecture_change_requires_user_approval": true
+  },
+  "current_red_flags": [
+    "FieldGraphSampler is per-pixel reference evaluation; must not become production batch API"
+  ]
+}
