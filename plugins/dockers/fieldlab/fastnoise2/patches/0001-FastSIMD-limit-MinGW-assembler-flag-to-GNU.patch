@@ -1,0 +1,15 @@
+From: Field Lab dependency spike
+Subject: [PATCH] FastSIMD: limit MinGW assembler workaround to GNU
+
+llvm-mingw uses Clang's integrated assembler, which rejects the GNU assembler
+option -muse-unaligned-vector-move. The workaround is only applicable when the
+compiler driver is GNU.
+
+diff --git a/dispatch/cmake/ClassSIMD.cmake b/dispatch/cmake/ClassSIMD.cmake
+--- a/dispatch/cmake/ClassSIMD.cmake
++++ b/dispatch/cmake/ClassSIMD.cmake
+@@ -110,3 +110,3 @@ function(fastsimd_create_dispatch_library simd_library_name)
+-    if(MINGW)
++    if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+         target_compile_options(${simd_library_name} PRIVATE -Wa,-muse-unaligned-vector-move)
+     endif()

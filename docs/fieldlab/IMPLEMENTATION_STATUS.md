@@ -40,6 +40,7 @@ separate from the docker.
 | `FieldGraph` semantic model | PARTIAL | Nodes, connections, parameter mutation, input disconnection, and node removal exist; persistence and undo integration do not |
 | Scalar evaluator | PROTOTYPE / DEBUG | Recursive single-sample arithmetic/position convenience path with hard-coded native type dispatch |
 | Batch evaluator | IMPLEMENTED FOR NATIVE SCAFFOLD | `evaluatePositions(...)` and normalized `evaluateGrid(...)` evaluate and cache each reachable node once per batch |
+| FastNoise2 dependency | SPIKE / TESTED WINDOWS | Exact v1.1.1 package and metadata/batch probe pass with one recorded FastSIMD llvm-mingw patch; normal builds remain unlinked |
 | Graph validation | PARTIAL | Checks known types, ports, value types, required inputs, and cycles |
 | 2D preview | PARTIAL / BATCHED | Auto-updating normalized 128x128 grayscale prototype consumes `evaluateGrid(...)` |
 | Scalar reference sampler | DEBUG/TEST ONLY | `FieldGraphReferenceSampler::sampleScalarReference()` preserves the old per-pixel loop as an oracle and has no production caller |
@@ -59,8 +60,9 @@ separate from the docker.
   per-pixel scalar loop and is referenced only by its parity test.
 - `NodeDescriptor::builtInScalarNodes()` contains exactly five handwritten
   native scaffold descriptors.
-- No FastNoise2 source, metadata adapter, `Metadata::GetAll`, FastNoise node
-  catalog, or FastNoise build integration exists in Field Lab.
+- No FastNoise2 source is vendored and no production adapter or node catalog
+  exists. An opt-in probe exercises `Metadata::GetAll` and batch generation
+  against an isolated local package.
 - `FieldGraphTest` covers graph connections, mutation, scalar and batch
   arithmetic, arbitrary positions, normalized grids, evaluator errors, cycles,
   descriptors, validation, finite output, repeatability, and reference parity.
@@ -69,7 +71,7 @@ separate from the docker.
 
 ## Not implemented yet
 
-- FastNoise2 integration
+- production FastNoise2 integration and dependency recipe
 - FastNoise2 metadata descriptor adapter
 - FastNoise island compiler
 - batch FastNoise evaluator
@@ -116,7 +118,7 @@ the reference sampler.
 |---|---|---|
 | Painting-first Krita host | PASS | Work is contained in a docker/plugin; no Krita core rewrite was introduced |
 | Semantic graph authoritative and UI-independent | PASS | Graph state and services live in `kritafieldlabcore`; the docker consumes them |
-| FastNoise2 metadata catalog | NOT STARTED | Only five native prototype descriptors exist; no FastNoise catalog has been hand-authored |
+| FastNoise2 metadata catalog | SPIKE ONLY | Probe discovered 47 metadata types dynamically; only five native prototype descriptors exist and no production FastNoise catalog has been hand-authored |
 | Batch/tile evaluation primary | PASS FOR CURRENT SCOPE | Docker uses batch grid/position contracts; scalar loop is isolated as a test/debug oracle |
 | Krita preview/bake lifecycle | UNRESOLVED | No permanent `KisProcessingApplicator` vs generator-layer decision has been made |
 | Android as first-class target | NOT TESTED | No Android ARM64 build, device test, S Pen test, or thermal/memory evidence exists |
@@ -153,10 +155,13 @@ No Android claim should be upgraded without concrete build and device evidence.
 - No new mandatory code dependency is present in Field Lab.
 - Current Field Lab sources use Qt/Krita infrastructure and are marked
   `GPL-2.0-or-later`.
-- FastNoise2 is not present in the repository or local Field Lab build inputs.
-- Any FastNoise2 addition must first record the exact version, license, used
-  API/files, Windows viability, Android ARM64 viability, build cost,
-  maintenance risk, and rollback path required by `REUSE_LEDGER.md`.
+- FastNoise2 v1.1.1 and pinned FastSIMD are MIT-licensed and present only in an
+  isolated local cache/install prefix.
+- The complete version, license, API, Windows, Android, build-cost,
+  maintenance-risk, subset, and rollback record is in
+  `FASTNOISE2_DEPENDENCY.md`.
+- Normal Field Lab targets do not find or link FastNoise2. The probe is gated
+  by `FIELDLAB_ENABLE_FASTNOISE2_SPIKE`, which defaults to `OFF`.
 
 ## Current Codex-direction verdict
 
@@ -194,18 +199,18 @@ Field Lab remains a multi-domain procedural system, not only a noise generator.
 
 ## Next three smallest canonical tasks
 
-Task 1 from the audit is complete. The remaining recommendations have not been
-started.
+The batch task and Windows portion of the dependency spike are complete.
+Android dependency validation remains blocked by the absent local toolchain.
 
-1. Prepare the required FastNoise2 dependency record and a minimal isolated
-   Windows/Android build-and-metadata spike; do not add a handwritten production
-   node catalog.
+1. Reproduce the pinned FastNoise2 package in `krita-deps-management` for
+   Windows and Android ARM64, including the recorded FastSIMD patch and package
+   size evidence.
 2. Add versioned semantic graph persistence with round-trip and malformed-input
    tests, independent of any visual node editor or permanent Krita bake
    lifecycle choice.
-3. After the dependency spike passes, adapt FastNoise2 metadata into semantic
-   descriptors and connect a minimal FastNoise island to the batch contracts;
-   do not hand-author the production catalog.
+3. After Android dependency validation passes, adapt FastNoise2 metadata into
+   semantic descriptors and connect a minimal FastNoise island to the batch
+   contracts; do not hand-author the production catalog.
 
 ## Audit task record
 
@@ -303,3 +308,60 @@ Next dependency: FastNoise2 dependency/license/build/metadata spike
 
 Rollback note: revert the batch-evaluation commit; the prior scalar reference
 implementation remains isolated in `FieldGraphReferenceSampler`
+
+## FastNoise2 dependency-spike task record
+
+Task: Pin and validate FastNoise2 metadata and batch APIs without production
+integration
+
+Date/starting commit: 2026-08-23 / `1e50098449`
+
+Requirements: `FL-PLAT`, `FL-GRAPH`, `FL-SCALAR`, `FL-PROD`
+
+Requirement state: ACTIVE
+
+Implementation state: SPIKE / TESTED WINDOWS / ANDROID NOT TESTED
+
+Files changed: opt-in FastNoise2 probe/test CMake, recorded FastSIMD patch,
+`FASTNOISE2_DEPENDENCY.md`, root `AGENTS.md`, `FEATURE_LEDGER.md`,
+`REUSE_LEDGER.md`, `README.md`, and this status record
+
+Reuse source: FastNoise2 v1.1.1 at
+`903c1f2d2f9d53ddce94cd223f32727d9ab3aeaa` and FastSIMD at
+`16450dae9528727e500e7254f635a671f9c7ee2d`
+
+New dependency/license: optional spike dependency only; FastNoise2 and FastSIMD
+are MIT-licensed and are not vendored or linked by normal Field Lab targets
+
+Architecture changed: No; the spike validates the already-approved FastNoise2
+backend direction while keeping the semantic graph and production plugin
+independent
+
+Windows build/test: PASS after applying the recorded one-line FastSIMD
+llvm-mingw patch; static package installed in an isolated prefix; CTest 1/1 and
+QtTest 4/4 pass; 47 metadata nodes discovered; AVX2 selected
+
+Android build/test: NOT TESTED; no local SDK, NDK, dependency prefix, build
+tree, or device is available
+
+Unit/integration tests: opt-in `FastNoise2Probe` validates metadata uniqueness,
+dynamic node creation, deterministic uniform-grid generation, arbitrary
+position generation, finite output, and min/max contracts
+
+Performance implications: FastNoise2 uses fused SIMD batch generation, but no
+Field Lab benchmark or production FastNoise island exists yet; local
+`RelWithDebInfo` archive is 24,414,188 bytes and is not a release-size claim
+
+Known limitations: downstream compiler patch required; Android and release
+packaging untested; strict-FP/reproducibility policy unresolved; no semantic
+descriptor adapter, serialization mapping, island compiler, or docker caller
+
+What remains uncertain: Android NDK compatibility, APK size, Galaxy Tab S9 FE+
+runtime behavior, strict-FP policy, and long-term disposition of the FastSIMD
+patch
+
+Next dependency: reproducible `krita-deps-management` recipes for Windows and
+Android ARM64
+
+Rollback note: leave `FIELDLAB_ENABLE_FASTNOISE2_SPIKE` off or revert the spike
+commit; no production target or document format depends on FastNoise2

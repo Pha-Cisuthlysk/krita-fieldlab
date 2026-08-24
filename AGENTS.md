@@ -10,6 +10,7 @@ Before modifying Field Lab, read:
 - `docs/fieldlab/ARCHITECTURE_GUARDRAILS.md`
 - `docs/fieldlab/FEATURE_LEDGER.md`
 - `docs/fieldlab/REUSE_LEDGER.md`
+- `docs/fieldlab/FASTNOISE2_DEPENDENCY.md`
 - `docs/fieldlab/IMPLEMENTATION_STATUS.md`
 - `docs/fieldlab/DECISIONS_AND_CONFLICTS.md`
 - `docs/fieldlab/CODEX_AUDIT_PROTOCOL.md`

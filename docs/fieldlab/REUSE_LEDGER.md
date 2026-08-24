@@ -24,8 +24,8 @@ number of dependencies.
 | Intelligent coloring | Krita Colorize/lazybrush | DIRECT/ADAPT | Reuse first |
 | Bounded line-art proximity | `KisGapMap` | ADAPT | Prototype where bounded behavior fits |
 | General exact distance/SDF | proper EDT backend | VENDOR/ADAPT | Still required |
-| Noise/fractals/domain math | FastNoise2 1.x | DIRECT/ADAPT | Primary scalar backend |
-| FastNoise node definitions | FastNoise2 metadata | DIRECT/ADAPT | Generate, do not hand-author |
+| Noise/fractals/domain math | FastNoise2 v1.1.1 (`903c1f2d`) | DIRECT/ADAPT | Primary scalar backend; Windows spike passed with one FastSIMD patch; Android not tested; not mandatory yet |
+| FastNoise node definitions | FastNoise2 v1.1.1 metadata | DIRECT/ADAPT | Opt-in probe discovered 47 nodes; production adapter not started; generate, do not hand-author |
 | Arbitrary user expressions | KSeExpr | ADAPT | Later/optional backend |
 | Generic raster operators | G'MIC | RESEARCH/ADAPT | Audit per operator; not a blanket dependency |
 | Hatching conventions/math | Krita hatching paintop | ALGORITHM/ADAPT | Reuse applicable primitives/settings only |
@@ -54,3 +54,5 @@ Each dependency proposal must record:
 - maintenance risk
 - estimated engineering time saved
 - smallest vendorable subset
+
+The complete current FastNoise2 record is in `FASTNOISE2_DEPENDENCY.md`.

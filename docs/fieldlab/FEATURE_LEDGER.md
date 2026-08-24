@@ -6,7 +6,7 @@ This compact ledger is an index. The exhaustive preserved inventory is in
 | ID | Requirement family | Requirement state | Current coverage |
 |---|---|---|---|
 | FL-PROD | Painting-first Krita application; simple by default | ACTIVE | Krita baseline / guardrail |
-| FL-PLAT | Windows + Android ARM64 first-class | ACTIVE | Windows partial; Android not tested |
+| FL-PLAT | Windows + Android ARM64 first-class | ACTIVE | Windows plugin and FastNoise dependency spikes tested; Android not tested |
 | FL-UI | Accessible/customizable desktop+tablet UI | ACTIVE | NOT STARTED |
 | FL-CURVE | Passing-point curve system | ACTIVE / protected near-term | NOT STARTED |
 | FL-SMARTFILL | Smart Fill UI/presets over Krita fill machinery | ACTIVE / protected near-term | REUSE IDENTIFIED |
@@ -15,13 +15,13 @@ This compact ledger is an index. The exhaustive preserved inventory is in
 | FL-GRAPH | Authoritative typed semantic graph | ACTIVE | PARTIAL |
 | FL-PREVIEW | Live/reduced-resolution procedural preview | ACTIVE | PARTIAL |
 | FL-BAKE | Procedural bake to Krita layer/data | ACTIVE | NOT STARTED |
-| FL-SCALAR | Scalar fields | ACTIVE / very important | PARTIAL scaffold |
+| FL-SCALAR | Scalar fields | ACTIVE / very important | PARTIAL scaffold; FastNoise2 Windows spike passed |
 | FL-VECTOR | Vector fields | ACTIVE / very important | NOT STARTED |
 | FL-DIST | Distance fields | ACTIVE / important | RESEARCHED |
 | FL-LINE-DIST | Distance from line art | ACTIVE / very important | REUSE IDENTIFIED |
 | FL-SDF | SDF/geometric distance primitives | ACTIVE / important | RESEARCHED |
-| FL-FRACTAL | Fractals | ACTIVE / very important | REUSE IDENTIFIED |
-| FL-WARP | Domain warping | ACTIVE / important | REUSE IDENTIFIED |
+| FL-FRACTAL | Fractals | ACTIVE / very important | FastNoise2 reuse validated on Windows; not integrated |
+| FL-WARP | Domain warping | ACTIVE / important | FastNoise2 reuse validated on Windows; not integrated |
 | FL-CONTOUR | Contours | ACTIVE / important | RESEARCHED |
 | FL-STREAM | Streamlines | ACTIVE / important | RESEARCHED |
 | FL-HATCH | Procedural hatching | ACTIVE / important | RESEARCHED |

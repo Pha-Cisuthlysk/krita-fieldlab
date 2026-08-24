@@ -34,6 +34,7 @@ later scope clarification.
 - `ARCHITECTURE_GUARDRAILS.md` — architectural invariants and approval gates.
 - `FEATURE_LEDGER.md` — compact feature-family ledger.
 - `REUSE_LEDGER.md` — reuse-before-build decisions.
+- `FASTNOISE2_DEPENDENCY.md` — exact dependency and platform-spike evidence.
 - `IMPLEMENTATION_STATUS.md` — current repository audit.
 - `DECISIONS_AND_CONFLICTS.md` — reconciles historical plans without silently rewriting them.
 - `CODEX_AUDIT_PROTOCOL.md` — mandatory pre-task and post-task audit procedure.
