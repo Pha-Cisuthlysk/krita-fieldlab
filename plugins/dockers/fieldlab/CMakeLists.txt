@@ -1,4 +1,6 @@
 set(kritafieldlabcore_SOURCES
+    FieldCapabilityCatalog.cpp
+    FieldDataTypes.cpp
     NodeDescriptor.cpp
     FieldGraph.cpp
     FieldGraphEvaluator.cpp
@@ -14,6 +16,7 @@ target_include_directories(
 )
 
 set(kritafieldlab_SOURCES
+    FieldCapabilityView.cpp
     FieldLabPlugin.cpp
     FieldLabDocker.cpp
 )

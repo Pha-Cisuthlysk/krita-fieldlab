@@ -25,11 +25,13 @@ received.
 
 ## Summary
 
-The repository is still in the semantic-graph skeleton stage. The native
-prototype now exposes batch position and grid evaluation as its primary field
-contracts while retaining single-sample evaluation for debugging and tests.
-Field Lab has not become a noise-only system, and the semantic core remains
-separate from the docker.
+The repository is in the semantic graph and product-scaffolding stage. The
+native prototype exposes batch position and grid evaluation as its primary
+field contracts while retaining single-sample evaluation for debugging and
+tests. Five host-neutral interchange types and a catalog covering all 38
+canonical requirement families now preserve extension points without claiming
+their algorithms are implemented. Field Lab has not become a noise-only
+system, and the semantic core remains separate from the docker.
 
 ## Implemented/partial
 
@@ -37,6 +39,9 @@ separate from the docker.
 |---|---|---|
 | Field Lab Krita docker/plugin | IMPLEMENTED / TESTED WINDOWS | Contained `kritafieldlab` module; user demonstrated the preview before the latest core-only refactors |
 | `NodeDescriptor` scaffold | PARTIAL | Five manual native prototype nodes only: Constant, Position X/Y, Add, Multiply |
+| Core interchange types | SCAFFOLDED | UI-independent `ScalarField2D`, `VectorField2D`, `RasterSource`, `PointSet`, and `PathSet` value containers; no Krita adapters or algorithms yet |
+| Capability catalog | IMPLEMENTED AS ACCOUNTABILITY SCAFFOLD | All 38 ledger families have unique stable IDs, requirement states, and current stages; catalog entries are not executable features |
+| Capability browser | SCAFFOLDED / RUNTIME LOADED WINDOWS | UI-only searchable and state-filterable Systems tab groups all catalog entries into eight visible areas; no visual nodes or feature execution controls yet |
 | `FieldGraph` semantic model | PARTIAL | Nodes, connections, parameter mutation, input disconnection, and node removal exist; persistence and undo integration do not |
 | Scalar evaluator | PROTOTYPE / DEBUG | Recursive single-sample arithmetic/position convenience path with hard-coded native type dispatch |
 | Batch evaluator | IMPLEMENTED FOR NATIVE SCAFFOLD | `evaluatePositions(...)` and normalized `evaluateGrid(...)` evaluate and cache each reachable node once per batch |
@@ -44,7 +49,7 @@ separate from the docker.
 | Graph validation | PARTIAL | Checks known types, ports, value types, required inputs, and cycles |
 | 2D preview | PARTIAL / BATCHED | Auto-updating normalized 128x128 grayscale prototype consumes `evaluateGrid(...)` |
 | Scalar reference sampler | DEBUG/TEST ONLY | `FieldGraphReferenceSampler::sampleScalarReference()` preserves the old per-pixel loop as an oracle and has no production caller |
-| Unit tests | PARTIAL / TESTED WINDOWS | One guiless CTest target with 13 focused test methods |
+| Unit tests | PARTIAL / TESTED WINDOWS | One guiless CTest target with 15 focused test methods |
 | Semantic-core build target | IMPLEMENTED | `kritafieldlabcore` is a Qt-Core-only static target shared by plugin and tests |
 
 ## Evidence inspected
@@ -76,16 +81,16 @@ separate from the docker.
 - FastNoise island compiler
 - batch FastNoise evaluator
 - graph persistence/versioning in `.kra`
-- RasterSource
+- RasterSource Krita adapter and sampling
 - bake to Krita layer/generator
 - sensor/curve adapter
 - exact EDT/SDF
 - bounded line-art distance adapter
-- vector fields
+- vector-field evaluation and operators
 - contours
 - streamlines
 - hatching
-- PointSet/PathSet
+- PointSet/PathSet processing and Krita geometry adapters
 - Android build/test
 - tablet workspace
 - passing-point curves
@@ -130,15 +135,17 @@ the reference sampler.
 
 - `FieldGraphTest`: PASS in the existing Windows build tree.
 - `kritafieldlab`: PASS when built as the focused target.
-- Current batch-evaluation DLL was copied to the dev install and verified
+- Current product-scaffold DLL was copied to the dev install and verified
   byte-for-byte at SHA-256
-  `574F91A9875972A87133FF7B263C302793BEE8F55D2C380AC5B972C3E3050B80`.
+  `636322824DEA0F472F2AC921BDBE07CB5DD286904F9531CEF53BE85A57082A11`.
 - Built and dev-installed plugin DLLs were verified with matching SHA-256
   hashes at the audited baseline.
 - The user demonstrated the auto-updating preview at commit `cb467ff4d2`.
-- Fresh runtime smoke: the dev Krita process remained running after startup and
-  loaded the exact installed `kritafieldlab.dll`. Preview pixels were not
-  independently inspected in this task.
+- Fresh runtime smoke: `krita.com --nosplash` produced a visible responsive
+  Krita window, constructed `FieldLabDocker`, and loaded the exact installed
+  `kritafieldlab.dll`. The minimized docker's child controls were not exposed
+  to Windows UI Automation, so tab-level interaction was not independently
+  automated in this task.
 
 ### Android ARM64 / Samsung Galaxy Tab S9 FE+
 
@@ -365,3 +372,60 @@ Android ARM64
 
 Rollback note: leave `FIELDLAB_ENABLE_FASTNOISE2_SPIKE` off or revert the spike
 commit; no production target or document format depends on FastNoise2
+
+## Product-scaffolding task record
+
+Task: Add a reversible skeleton for the remaining canonical product scope
+without adding visual nodes
+
+Date/starting commit: 2026-08-23 / `741553c8d8`
+
+Requirements: all 38 `FEATURE_LEDGER.md` families, with implementation focus on
+`FL-GRAPH`, `FL-SCALAR`, `FL-VECTOR`, `FL-RASTER`, `FL-POINT`, and `FL-PATH`
+
+Requirement state: ACTIVE / DEPENDENT / DEFERRED / REJECTED AS RECORDED
+
+Implementation state: SCAFFOLDED / TESTED WINDOWS / ANDROID NOT TESTED
+
+Files changed: UI-independent capability/data contracts, focused tests,
+searchable docker Systems view, CMake source list, UI asset brief, and
+accountability ledgers
+
+Reuse source: Qt Core containers and the existing Field Lab core/docker split
+
+New dependency/license: none; new source is `GPL-2.0-or-later`
+
+Architecture changed: Yes, explicitly approved by the user as a bounded
+scaffolding pass; no execution backend, bake lifecycle, persistence format, or
+visual node framework was selected
+
+Windows build/test: focused `kritafieldlab` and `FieldGraphTest` targets build;
+CTest 1/1 passes with the existing Krita runtime paths; the 3,603,456-byte
+built/dev-installed DLLs match at SHA-256
+`636322824DEA0F472F2AC921BDBE07CB5DD286904F9531CEF53BE85A57082A11`;
+a visible responsive dev Krita runtime constructed the docker and loaded that
+exact module
+
+Android build/test: NOT TESTED; the new contracts use Qt Core only, but no
+Android ARM64 compile or device evidence exists
+
+Unit/integration tests: 15 focused methods; new coverage checks all five core
+interchange families, all 38 unique requirement IDs, roadmap-state counts, and
+the five protected near-term families
+
+Performance implications: one static 38-entry metadata catalog; no new image
+algorithm, per-pixel path, backend call, or runtime dependency
+
+Known limitations: catalog entries retain scope but do not implement features;
+RasterSource is a semantic host reference only; vector, point, and path
+containers have no processing adapters yet; minimized docker child controls
+were not exposed to Windows UI Automation for tab-level automation
+
+What remains uncertain: permanent preview/bake lifecycle, document schema,
+execution interfaces, node editor, and Android behavior remain unresolved
+
+Next dependency: versioned semantic graph persistence, or an explicitly chosen
+small implementation slice from the scaffold
+
+Rollback note: revert the product-scaffolding commit; no document format or
+production backend depends on these additive contracts

@@ -26,6 +26,8 @@ private Q_SLOTS:
     void testGridBatchEvaluation();
     void testBatchEvaluationErrors();
     void testReferenceSamplerMatchesBatch();
+    void testCoreDataScaffold();
+    void testCapabilityCatalog();
 };
 
 #endif

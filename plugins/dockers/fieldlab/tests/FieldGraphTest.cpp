@@ -10,6 +10,8 @@
 
 #include <limits>
 
+#include "FieldCapabilityCatalog.h"
+#include "FieldDataTypes.h"
 #include "FieldGraph.h"
 #include "FieldGraphEvaluator.h"
 #include "FieldGraphSampler.h"
@@ -732,6 +734,115 @@ void FieldGraphTest::testReferenceSamplerMatchesBatch()
     QCOMPARE(reference.grid.maximum, batch.grid.maximum);
     QCOMPARE(reference.grid.values, batch.grid.values);
     QCOMPARE(repeated.grid.values, batch.grid.values);
+}
+
+void FieldGraphTest::testCoreDataScaffold()
+{
+    const FieldDomain2D domain{2, 2, -1.0, -1.0, 1.0, 1.0};
+
+    QVERIFY(domain.isValid());
+    QCOMPARE(domain.sampleCount(), qint64(4));
+
+    ScalarField2D scalarField{domain, {0.0, 0.25, 0.5, 1.0}};
+    QVERIFY(scalarField.isConsistent());
+    scalarField.samples.removeLast();
+    QVERIFY(!scalarField.isConsistent());
+
+    const VectorField2D vectorField{domain, {{1.0, 0.0}, {0.0, 1.0}, {-1.0, 0.0}, {0.0, -1.0}}};
+    QVERIFY(vectorField.isConsistent());
+
+    RasterSource rasterSource;
+    QVERIFY(!rasterSource.isValid());
+    rasterSource.sourceId = QStringLiteral("document.layer:42");
+    rasterSource.channelId = QStringLiteral("luminance");
+    QVERIFY(rasterSource.isValid());
+
+    PointSet points;
+    points.points.append({0.25, 0.75, 0.5});
+    QCOMPARE(points.points.first().weight, 0.5);
+
+    PathSet paths;
+    paths.paths.append({points.points, true});
+    QVERIFY(paths.paths.first().closed);
+    QCOMPARE(paths.paths.first().points.size(), 1);
+
+    const QVector<FieldDataKind> &kinds = fieldCoreDataKinds();
+    QCOMPARE(kinds.size(), 5);
+
+    QSet<QString> kindIds;
+    for (FieldDataKind kind : kinds) {
+        const QString id = fieldDataKindId(kind);
+        QVERIFY(!id.isEmpty());
+        QVERIFY(!kindIds.contains(id));
+        kindIds.insert(id);
+    }
+}
+
+void FieldGraphTest::testCapabilityCatalog()
+{
+    const QVector<FieldCapabilityDescriptor> &capabilities = FieldCapabilityCatalog::all();
+
+    QCOMPARE(capabilities.size(), 38);
+    QCOMPARE(FieldCapabilityCatalog::count(FieldRequirementState::Active), 27);
+    QCOMPARE(FieldCapabilityCatalog::count(FieldRequirementState::Dependent), 1);
+    QCOMPARE(FieldCapabilityCatalog::count(FieldRequirementState::Deferred), 8);
+    QCOMPARE(FieldCapabilityCatalog::count(FieldRequirementState::Rejected), 2);
+    QCOMPARE(FieldCapabilityCatalog::protectedNearTermCount(), 5);
+
+    QSet<QString> requirementIds;
+    QSet<QString> capabilityIds;
+    QSet<int> capabilityAreas;
+    QSet<QString> protectedRequirementIds;
+
+    for (const FieldCapabilityDescriptor &descriptor : capabilities) {
+        QVERIFY(!descriptor.requirementId.isEmpty());
+        QVERIFY(!descriptor.capabilityId.isEmpty());
+        QVERIFY(!descriptor.displayName.isEmpty());
+        QVERIFY(!requirementIds.contains(descriptor.requirementId));
+        QVERIFY(!capabilityIds.contains(descriptor.capabilityId));
+        requirementIds.insert(descriptor.requirementId);
+        capabilityIds.insert(descriptor.capabilityId);
+        capabilityAreas.insert(int(descriptor.area));
+
+        if (descriptor.protectedNearTerm) {
+            protectedRequirementIds.insert(descriptor.requirementId);
+        }
+
+        if (descriptor.requirementState == FieldRequirementState::Rejected) {
+            QCOMPARE(descriptor.implementationStage, FieldImplementationStage::Rejected);
+        }
+    }
+
+    const QSet<QString> expectedRequirementIds{
+        QStringLiteral("FL-PROD"),    QStringLiteral("FL-PLAT"),      QStringLiteral("FL-UI"),
+        QStringLiteral("FL-CURVE"),   QStringLiteral("FL-SMARTFILL"), QStringLiteral("FL-COLOR"),
+        QStringLiteral("FL-TABLET"),  QStringLiteral("FL-GRAPH"),     QStringLiteral("FL-PREVIEW"),
+        QStringLiteral("FL-BAKE"),    QStringLiteral("FL-SCALAR"),    QStringLiteral("FL-VECTOR"),
+        QStringLiteral("FL-DIST"),    QStringLiteral("FL-LINE-DIST"), QStringLiteral("FL-SDF"),
+        QStringLiteral("FL-FRACTAL"), QStringLiteral("FL-WARP"),      QStringLiteral("FL-CONTOUR"),
+        QStringLiteral("FL-STREAM"),  QStringLiteral("FL-HATCH"),     QStringLiteral("FL-FLOW"),
+        QStringLiteral("FL-OPS"),     QStringLiteral("FL-ICOLOR"),    QStringLiteral("FL-PARAM"),
+        QStringLiteral("FL-RASTER"),  QStringLiteral("FL-POINT"),     QStringLiteral("FL-PATH"),
+        QStringLiteral("FL-MASK"),    QStringLiteral("FL-MATH-IR"),   QStringLiteral("FL-MATH-VIZ"),
+        QStringLiteral("FL-EXPR"),    QStringLiteral("FL-GMIC"),      QStringLiteral("FL-3DREF"),
+        QStringLiteral("FL-3DRIG"),   QStringLiteral("FL-EROSION"),   QStringLiteral("FL-WET"),
+        QStringLiteral("FL-ANIM"),    QStringLiteral("FL-GPU")};
+
+    QVERIFY(requirementIds == expectedRequirementIds);
+    QCOMPARE(capabilityAreas.size(), 8);
+
+    const QSet<QString> expectedProtectedRequirementIds {
+        QStringLiteral("FL-CURVE"),
+        QStringLiteral("FL-SMARTFILL"),
+        QStringLiteral("FL-COLOR"),
+        QStringLiteral("FL-TABLET"),
+        QStringLiteral("FL-GRAPH")
+    };
+    QVERIFY(protectedRequirementIds == expectedProtectedRequirementIds);
+
+    QVERIFY(FieldCapabilityCatalog::find(QStringLiteral("FL-VECTOR")));
+    QVERIFY(FieldCapabilityCatalog::find(QStringLiteral("FL-BAKE")));
+    QVERIFY(!FieldCapabilityCatalog::find(QStringLiteral("FL-MISSING")));
 }
 
 QTEST_GUILESS_MAIN(FieldGraphTest)

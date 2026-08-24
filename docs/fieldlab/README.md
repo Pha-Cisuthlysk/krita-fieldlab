@@ -37,6 +37,7 @@ later scope clarification.
 - `FASTNOISE2_DEPENDENCY.md` — exact dependency and platform-spike evidence.
 - `IMPLEMENTATION_STATUS.md` — current repository audit.
 - `DECISIONS_AND_CONFLICTS.md` — reconciles historical plans without silently rewriting them.
+- `UI_ASSET_BRIEF.md` — custom Field Lab icon priorities and texture guidance.
 - `CODEX_AUDIT_PROTOCOL.md` — mandatory pre-task and post-task audit procedure.
 - `CODEX_START_PROMPT.md` — prompt to give Codex when installing this package.
 

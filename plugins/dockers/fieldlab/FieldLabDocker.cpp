@@ -5,6 +5,9 @@
 
 #include "FieldLabDocker.h"
 
+#include "FieldCapabilityCatalog.h"
+#include "FieldCapabilityView.h"
+#include "FieldDataTypes.h"
 #include "FieldGraph.h"
 #include "FieldGraphEvaluator.h"
 #include "FieldGraphValidator.h"
@@ -18,6 +21,7 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QSizePolicy>
+#include <QTabWidget>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -34,7 +38,7 @@ FieldLabDocker::FieldLabDocker(QWidget *parent)
     QVBoxLayout *layout = new QVBoxLayout(contents);
 
     QLabel *title = new QLabel(
-        i18n("Field Lab Graph Preview"),
+        i18n("Field Lab Workspace"),
         contents);
 
     title->setWordWrap(true);
@@ -49,19 +53,43 @@ FieldLabDocker::FieldLabDocker(QWidget *parent)
 
     catalog->setWordWrap(true);
 
+    const QVector<FieldCapabilityDescriptor> &capabilities =
+        FieldCapabilityCatalog::all();
+
+    QLabel *scaffold = new QLabel(
+        i18n(
+            "Semantic scaffold: %1 tracked families\n"
+            "Core interchange types: %2\n"
+            "Roadmap: %3 active + %4 dependent | %5 deferred | %6 rejected\n"
+            "Protected near-term: %7 retained",
+            capabilities.size(),
+            fieldCoreDataKinds().size(),
+            FieldCapabilityCatalog::count(FieldRequirementState::Active),
+            FieldCapabilityCatalog::count(FieldRequirementState::Dependent),
+            FieldCapabilityCatalog::count(FieldRequirementState::Deferred),
+            FieldCapabilityCatalog::count(FieldRequirementState::Rejected),
+            FieldCapabilityCatalog::protectedNearTermCount()),
+        contents);
+
+    scaffold->setWordWrap(true);
+
+    QTabWidget *workspace = new QTabWidget(contents);
+    QWidget *previewPage = new QWidget(workspace);
+    QVBoxLayout *previewLayout = new QVBoxLayout(previewPage);
+
     QFormLayout *form = new QFormLayout();
 
-    m_inputA = new QDoubleSpinBox(contents);
+    m_inputA = new QDoubleSpinBox(previewPage);
     m_inputA->setRange(-1000000.0, 1000000.0);
     m_inputA->setDecimals(4);
     m_inputA->setValue(4.0);
 
-    m_inputB = new QDoubleSpinBox(contents);
+    m_inputB = new QDoubleSpinBox(previewPage);
     m_inputB->setRange(-1000000.0, 1000000.0);
     m_inputB->setDecimals(4);
     m_inputB->setValue(3.0);
 
-    m_operation = new QComboBox(contents);
+    m_operation = new QComboBox(previewPage);
     m_operation->addItem(
         i18n("Multiply"),
         QStringLiteral("fieldlab.multiply"));
@@ -75,13 +103,13 @@ FieldLabDocker::FieldLabDocker(QWidget *parent)
 
     QLabel *previewTitle = new QLabel(
         i18n("2D grayscale preview"),
-        contents);
+        previewPage);
 
     previewTitle->setWordWrap(true);
 
     m_preview = new QLabel(
         i18n("Preview updates automatically."),
-        contents);
+        previewPage);
 
     m_preview->setAlignment(Qt::AlignCenter);
     m_preview->setFrameShape(QFrame::StyledPanel);
@@ -92,7 +120,7 @@ FieldLabDocker::FieldLabDocker(QWidget *parent)
 
     m_result = new QLabel(
         i18n("Adjust the controls to evaluate the graph."),
-        contents);
+        previewPage);
 
     m_result->setWordWrap(true);
 
@@ -120,13 +148,20 @@ FieldLabDocker::FieldLabDocker(QWidget *parent)
             refreshGraphPreview();
         });
 
+    previewLayout->addLayout(form);
+    previewLayout->addWidget(previewTitle);
+    previewLayout->addWidget(m_preview, 1);
+    previewLayout->addWidget(m_result);
+
+    workspace->addTab(previewPage, i18n("Preview"));
+    workspace->addTab(
+        new FieldCapabilityView(workspace),
+        i18n("Systems"));
+
     layout->addWidget(title);
     layout->addWidget(catalog);
-    layout->addLayout(form);
-    layout->addWidget(previewTitle);
-    layout->addWidget(m_preview);
-    layout->addWidget(m_result);
-    layout->addStretch();
+    layout->addWidget(scaffold);
+    layout->addWidget(workspace, 1);
 
     setWidget(contents);
 

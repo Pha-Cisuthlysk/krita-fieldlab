@@ -3,6 +3,10 @@
 This compact ledger is an index. The exhaustive preserved inventory is in
 `CANONICAL_FEATURE_INVENTORY_SOURCE.md`.
 
+Every row below is also represented in the UI-independent
+`FieldCapabilityCatalog`. Catalog presence means the scope is retained and has
+a stable semantic identifier; it does not mean the feature is implemented.
+
 | ID | Requirement family | Requirement state | Current coverage |
 |---|---|---|---|
 | FL-PROD | Painting-first Krita application; simple by default | ACTIVE | Krita baseline / guardrail |
@@ -15,8 +19,8 @@ This compact ledger is an index. The exhaustive preserved inventory is in
 | FL-GRAPH | Authoritative typed semantic graph | ACTIVE | PARTIAL |
 | FL-PREVIEW | Live/reduced-resolution procedural preview | ACTIVE | PARTIAL |
 | FL-BAKE | Procedural bake to Krita layer/data | ACTIVE | NOT STARTED |
-| FL-SCALAR | Scalar fields | ACTIVE / very important | PARTIAL scaffold; FastNoise2 Windows spike passed |
-| FL-VECTOR | Vector fields | ACTIVE / very important | NOT STARTED |
+| FL-SCALAR | Scalar fields | ACTIVE / very important | PARTIAL evaluator and interchange type; FastNoise2 Windows spike passed |
+| FL-VECTOR | Vector fields | ACTIVE / very important | INTERCHANGE TYPE SCAFFOLDED; evaluation not started |
 | FL-DIST | Distance fields | ACTIVE / important | RESEARCHED |
 | FL-LINE-DIST | Distance from line art | ACTIVE / very important | REUSE IDENTIFIED |
 | FL-SDF | SDF/geometric distance primitives | ACTIVE / important | RESEARCHED |
@@ -29,9 +33,9 @@ This compact ledger is an index. The exhaustive preserved inventory is in
 | FL-OPS | Procedural operators | ACTIVE / important | PARTIAL architecture |
 | FL-ICOLOR | Intelligent coloring | ACTIVE / important | REUSE IDENTIFIED |
 | FL-PARAM | Pressure/stylus/key parameter modulation | ACTIVE | REUSE IDENTIFIED |
-| FL-RASTER | RasterSource / image-driven field inputs | ACTIVE foundation | NOT STARTED |
-| FL-POINT | PointSet/scatter interchange | ACTIVE foundation | RESEARCHED |
-| FL-PATH | PathSet procedural geometry | ACTIVE foundation | RESEARCHED |
+| FL-RASTER | RasterSource / image-driven field inputs | ACTIVE foundation | SEMANTIC REFERENCE SCAFFOLDED; Krita adapter not started |
+| FL-POINT | PointSet/scatter interchange | ACTIVE foundation | INTERCHANGE TYPE SCAFFOLDED; processing not started |
+| FL-PATH | PathSet procedural geometry | ACTIVE foundation | INTERCHANGE TYPE SCAFFOLDED; processing not started |
 | FL-MASK | Image-derived/live masks | DEPENDENT / not headline-required | REUSE IDENTIFIED |
 | FL-MATH-IR | Future math/expression semantic representation | DEFERRED but architectural placeholder | PARTIAL |
 | FL-MATH-VIZ | Field/math visualization overlays | DEFERRED but tracked | NOT STARTED |

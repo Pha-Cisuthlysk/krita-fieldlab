@@ -103,3 +103,39 @@ technically compelling.
 Use the label:
 
 **PROPOSED CHANGE — REQUIRES USER APPROVAL**
+
+## 11. Full-product semantic scaffold
+
+On 2026-08-23 the user approved building a skeleton of the remaining product
+scope in Krita without adding visual nodes yet.
+
+**Approved boundary:**
+
+- retain every canonical requirement family in a UI-independent capability
+  catalog
+- establish host-neutral `ScalarField2D`, `VectorField2D`, `RasterSource`,
+  `PointSet`, and `PathSet` interchange types
+- let the Field Lab docker report scaffold coverage without owning that data
+
+This approval does not select a permanent bake lifecycle, persistence format,
+backend execution interface, or visual node-editor framework. Those remain
+separate approval-gated decisions.
+
+Reason: preserve the complete product scope and shared data vocabulary before
+individual implementations diverge.
+
+Expected labor saved: future slices can reuse stable requirement IDs and core
+interchange containers instead of inventing isolated feature models.
+
+Migration impact: additive only; no document format or existing graph node is
+changed.
+
+Windows impact: focused plugin/test builds and runtime loading are verified.
+
+Android impact: contracts use Qt Core and the browser uses Qt Widgets, but no
+Android ARM64 build or Galaxy Tab S9 FE+ device test has been performed.
+
+Dependency/license impact: no new dependency; new code is GPL-2.0-or-later.
+
+Rollback path: revert the scaffolding commit; no production backend or saved
+document depends on it.
