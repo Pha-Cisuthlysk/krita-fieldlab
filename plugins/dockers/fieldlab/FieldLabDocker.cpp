@@ -7,7 +7,6 @@
 
 #include "FieldGraph.h"
 #include "FieldGraphEvaluator.h"
-#include "FieldGraphSampler.h"
 #include "FieldGraphValidator.h"
 #include "NodeDescriptor.h"
 
@@ -220,8 +219,8 @@ QImage FieldLabDocker::renderPreview(
 {
     constexpr int previewSize = 128;
 
-    const FieldGraphSamplingResult sampling =
-        FieldGraphSampler().sampleScalar(
+    const FieldGridEvaluationResult sampling =
+        FieldGraphEvaluator().evaluateGrid(
             graph,
             outputNodeId,
             previewSize,
@@ -289,14 +288,14 @@ void FieldLabDocker::refreshGraphPreview()
 
     FieldGraphEvaluator evaluator;
 
-    const FieldEvaluationResult result =
-        evaluator.evaluateScalar(
+    const FieldBatchEvaluationResult result =
+        evaluator.evaluatePositions(
             graph,
             outputNodeId,
-            {
+            {{
                 0.5,
                 0.5
-            });
+            }});
 
     if (!result.ok) {
         m_preview->clear();
@@ -341,7 +340,7 @@ void FieldLabDocker::refreshGraphPreview()
             "Center sample (x=0.5, y=0.5): %2\n"
             "Nodes: %3   Connections: %4",
             operationName,
-            QString::number(result.value, 'f', 4),
+            QString::number(result.values.first(), 'f', 4),
             graph.nodes().size(),
             graph.connections().size()));
 }

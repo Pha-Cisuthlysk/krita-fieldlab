@@ -6,36 +6,14 @@
 #ifndef FIELDLAB_FIELD_GRAPH_SAMPLER_H
 #define FIELDLAB_FIELD_GRAPH_SAMPLER_H
 
-#include <QString>
-#include <QVector>
+#include "FieldGraphEvaluator.h"
 
-#include "FieldGraph.h"
-
-struct FieldScalarGrid
-{
-    int width {0};
-    int height {0};
-    QVector<double> values;
-    double minimum {0.0};
-    double maximum {0.0};
-
-    double valueAt(int x, int y) const
-    {
-        return values.at((y * width) + x);
-    }
-};
-
-struct FieldGraphSamplingResult
-{
-    bool ok {false};
-    FieldScalarGrid grid;
-    QString error;
-};
-
-class FieldGraphSampler
+// Scalar-loop oracle for tests and debugging. Production callers use the
+// batch contracts on FieldGraphEvaluator.
+class FieldGraphReferenceSampler
 {
 public:
-    FieldGraphSamplingResult sampleScalar(
+    FieldGridEvaluationResult sampleScalarReference(
         const FieldGraph &graph,
         int outputNodeId,
         int width,

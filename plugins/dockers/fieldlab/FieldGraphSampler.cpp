@@ -11,7 +11,7 @@
 #include <cmath>
 #include <limits>
 
-FieldGraphSamplingResult FieldGraphSampler::sampleScalar(
+FieldGridEvaluationResult FieldGraphReferenceSampler::sampleScalarReference(
     const FieldGraph &graph,
     int outputNodeId,
     int width,

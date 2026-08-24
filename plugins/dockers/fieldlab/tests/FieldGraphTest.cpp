@@ -468,7 +468,7 @@ void FieldGraphTest::testGraphValidationErrors()
     }
 }
 
-void FieldGraphTest::testGridSampling()
+void FieldGraphTest::testPositionBatchEvaluation()
 {
     FieldGraph graph;
 
@@ -487,8 +487,50 @@ void FieldGraphTest::testGridSampling()
         add,
         QStringLiteral("b")));
 
-    const FieldGraphSamplingResult result =
-        FieldGraphSampler().sampleScalar(graph, add, 3, 2);
+    const FieldBatchEvaluationResult result =
+        FieldGraphEvaluator().evaluatePositions(
+            graph,
+            add,
+            {
+                {0.25, 0.75},
+                {1.0, 0.5},
+                {-2.0, 3.0}
+            });
+
+    QVERIFY2(result.ok, qPrintable(result.error));
+    QCOMPARE(result.values.size(), 3);
+    QCOMPARE(result.values.at(0), 1.0);
+    QCOMPARE(result.values.at(1), 1.5);
+    QCOMPARE(result.values.at(2), 1.0);
+
+    const FieldBatchEvaluationResult empty =
+        FieldGraphEvaluator().evaluatePositions(graph, add, {});
+
+    QVERIFY2(empty.ok, qPrintable(empty.error));
+    QVERIFY(empty.values.isEmpty());
+}
+
+void FieldGraphTest::testGridBatchEvaluation()
+{
+    FieldGraph graph;
+
+    const int x = graph.addNode(QStringLiteral("fieldlab.position_x"));
+    const int y = graph.addNode(QStringLiteral("fieldlab.position_y"));
+    const int add = graph.addNode(QStringLiteral("fieldlab.add"));
+
+    QVERIFY(graph.connectNodes(
+        x,
+        QStringLiteral("value"),
+        add,
+        QStringLiteral("a")));
+    QVERIFY(graph.connectNodes(
+        y,
+        QStringLiteral("value"),
+        add,
+        QStringLiteral("b")));
+
+    const FieldGridEvaluationResult result =
+        FieldGraphEvaluator().evaluateGrid(graph, add, 3, 2);
 
     QVERIFY2(result.ok, qPrintable(result.error));
     QCOMPARE(result.grid.width, 3);
@@ -508,8 +550,8 @@ void FieldGraphTest::testGridSampling()
         QStringLiteral("fieldlab.constant"),
         {{QStringLiteral("value"), 7.0}});
 
-    const FieldGraphSamplingResult singleSample =
-        FieldGraphSampler().sampleScalar(
+    const FieldGridEvaluationResult singleSample =
+        FieldGraphEvaluator().evaluateGrid(
             constantGraph,
             constant,
             1,
@@ -521,24 +563,100 @@ void FieldGraphTest::testGridSampling()
     QCOMPARE(singleSample.grid.valueAt(0, 0), 7.0);
 }
 
-void FieldGraphTest::testGridSamplingErrors()
+void FieldGraphTest::testBatchEvaluationErrors()
 {
     FieldGraph graph;
     const int add = graph.addNode(QStringLiteral("fieldlab.add"));
 
-    const FieldGraphSamplingResult invalidDimensions =
-        FieldGraphSampler().sampleScalar(graph, add, 0, 16);
+    const FieldBatchEvaluationResult missingNode =
+        FieldGraphEvaluator().evaluatePositions(
+            graph,
+            99,
+            {{0.0, 0.0}});
+    QVERIFY(!missingNode.ok);
+    QCOMPARE(
+        missingNode.error,
+        QStringLiteral("Node does not exist."));
+
+    const FieldGridEvaluationResult invalidDimensions =
+        FieldGraphEvaluator().evaluateGrid(graph, add, 0, 16);
     QVERIFY(!invalidDimensions.ok);
     QCOMPARE(
         invalidDimensions.error,
-        QStringLiteral("Sample dimensions must be positive."));
+        QStringLiteral("Grid dimensions must be positive."));
 
-    const FieldGraphSamplingResult evaluationError =
-        FieldGraphSampler().sampleScalar(graph, add, 2, 2);
+    const FieldGridEvaluationResult oversized =
+        FieldGraphEvaluator().evaluateGrid(
+            graph,
+            add,
+            std::numeric_limits<int>::max(),
+            2);
+    QVERIFY(!oversized.ok);
+    QCOMPARE(
+        oversized.error,
+        QStringLiteral("Grid dimensions are too large."));
+
+    const FieldGridEvaluationResult evaluationError =
+        FieldGraphEvaluator().evaluateGrid(graph, add, 2, 2);
     QVERIFY(!evaluationError.ok);
     QCOMPARE(
         evaluationError.error,
         QStringLiteral("Input 'a' is not connected."));
+
+    FieldGraph unknownGraph;
+    const int unknown =
+        unknownGraph.addNode(QStringLiteral("fieldlab.unknown"));
+
+    const FieldBatchEvaluationResult unknownNode =
+        FieldGraphEvaluator().evaluatePositions(
+            unknownGraph,
+            unknown,
+            {{0.0, 0.0}});
+    QVERIFY(!unknownNode.ok);
+    QCOMPARE(
+        unknownNode.error,
+        QStringLiteral("Unknown node type: fieldlab.unknown"));
+
+    FieldGraph cyclicGraph;
+    const int constant = cyclicGraph.addNode(
+        QStringLiteral("fieldlab.constant"),
+        {{QStringLiteral("value"), 1.0}});
+    const int cyclicAdd =
+        cyclicGraph.addNode(QStringLiteral("fieldlab.add"));
+    const int cyclicMultiply =
+        cyclicGraph.addNode(QStringLiteral("fieldlab.multiply"));
+
+    QVERIFY(cyclicGraph.connectNodes(
+        cyclicMultiply,
+        QStringLiteral("value"),
+        cyclicAdd,
+        QStringLiteral("a")));
+    QVERIFY(cyclicGraph.connectNodes(
+        constant,
+        QStringLiteral("value"),
+        cyclicAdd,
+        QStringLiteral("b")));
+    QVERIFY(cyclicGraph.connectNodes(
+        cyclicAdd,
+        QStringLiteral("value"),
+        cyclicMultiply,
+        QStringLiteral("a")));
+    QVERIFY(cyclicGraph.connectNodes(
+        constant,
+        QStringLiteral("value"),
+        cyclicMultiply,
+        QStringLiteral("b")));
+
+    const FieldGridEvaluationResult cycle =
+        FieldGraphEvaluator().evaluateGrid(
+            cyclicGraph,
+            cyclicAdd,
+            2,
+            2);
+    QVERIFY(!cycle.ok);
+    QCOMPARE(
+        cycle.error,
+        QStringLiteral("Cycle detected in graph."));
 
     FieldGraph nonFiniteGraph;
     const int infinity = nonFiniteGraph.addNode(
@@ -550,8 +668,8 @@ void FieldGraphTest::testGridSamplingErrors()
             }
         });
 
-    const FieldGraphSamplingResult nonFinite =
-        FieldGraphSampler().sampleScalar(
+    const FieldGridEvaluationResult nonFinite =
+        FieldGraphEvaluator().evaluateGrid(
             nonFiniteGraph,
             infinity,
             1,
@@ -561,6 +679,59 @@ void FieldGraphTest::testGridSamplingErrors()
         nonFinite.error,
         QStringLiteral(
             "Node evaluated to a non-finite value at sample (0, 0)."));
+
+    const FieldBatchEvaluationResult nonFinitePosition =
+        FieldGraphEvaluator().evaluatePositions(
+            nonFiniteGraph,
+            infinity,
+            {{0.0, 0.0}});
+    QVERIFY(!nonFinitePosition.ok);
+    QCOMPARE(
+        nonFinitePosition.error,
+        QStringLiteral(
+            "Node evaluated to a non-finite value at position 0."));
+}
+
+void FieldGraphTest::testReferenceSamplerMatchesBatch()
+{
+    FieldGraph graph;
+
+    const int x = graph.addNode(QStringLiteral("fieldlab.position_x"));
+    const int y = graph.addNode(QStringLiteral("fieldlab.position_y"));
+    const int multiply =
+        graph.addNode(QStringLiteral("fieldlab.multiply"));
+
+    QVERIFY(graph.connectNodes(
+        x,
+        QStringLiteral("value"),
+        multiply,
+        QStringLiteral("a")));
+    QVERIFY(graph.connectNodes(
+        y,
+        QStringLiteral("value"),
+        multiply,
+        QStringLiteral("b")));
+
+    const FieldGridEvaluationResult batch =
+        FieldGraphEvaluator().evaluateGrid(graph, multiply, 4, 3);
+    const FieldGridEvaluationResult reference =
+        FieldGraphReferenceSampler().sampleScalarReference(
+            graph,
+            multiply,
+            4,
+            3);
+    const FieldGridEvaluationResult repeated =
+        FieldGraphEvaluator().evaluateGrid(graph, multiply, 4, 3);
+
+    QVERIFY2(batch.ok, qPrintable(batch.error));
+    QVERIFY2(reference.ok, qPrintable(reference.error));
+    QVERIFY2(repeated.ok, qPrintable(repeated.error));
+    QCOMPARE(reference.grid.width, batch.grid.width);
+    QCOMPARE(reference.grid.height, batch.grid.height);
+    QCOMPARE(reference.grid.minimum, batch.grid.minimum);
+    QCOMPARE(reference.grid.maximum, batch.grid.maximum);
+    QCOMPARE(reference.grid.values, batch.grid.values);
+    QCOMPARE(repeated.grid.values, batch.grid.values);
 }
 
 QTEST_GUILESS_MAIN(FieldGraphTest)

@@ -47,5 +47,6 @@ and a Tablet Workspace.
 
 ## Current performance warning
 
-The present `FieldGraphSampler` per-pixel reference loop is acceptable only as a
-small prototype path. Do not build the production backend API around it.
+The present `FieldGraphReferenceSampler::sampleScalarReference()` per-pixel loop
+is acceptable only as a test/debug oracle. Do not build or route a production
+backend API around it.
